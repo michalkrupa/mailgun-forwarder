@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8765:8765"
+    environment:
+      - BROKER_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST:-0.0.0.0}
+      - SMTP_PORT=${SMTP_PORT:-25}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: gunicorn --bind 0.0.0.0:8765 --workers 4 --timeout 600 --access-logfile - mailgun.app:app
+
+  worker:
+    build: .
+    environment:
+      - BROKER_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST:-0.0.0.0}
+      - SMTP_PORT=${SMTP_PORT:-25}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: celery -A mailgun.queue.celery worker --loglevel=info
