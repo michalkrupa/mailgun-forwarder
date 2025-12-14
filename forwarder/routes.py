@@ -8,22 +8,35 @@ bp = Blueprint('forwarder', __name__)
 
 @bp.route("/mailgun-inbound-mime", methods=["POST"])
 def mailgun_inbound():
-    raw_mime = request.form.get("body-mime")
-    recipient = request.form.get("recipient")
-    sender = request.form.get("sender")
-    
-    logger.info(f"Received inbound email from {sender} to {recipient}")
-    
     if WEBHOOK_SECRET:
         token = request.headers.get("X-Webhook-Secret")
         if token != WEBHOOK_SECRET:
             logger.warning(f"Authentication failed for request from {request.remote_addr}")
             abort(403)
 
-    if not raw_mime or not recipient:
-        logger.error(f"Missing required fields - MIME: {bool(raw_mime)}, recipient: {bool(recipient)}")
-        abort(400, "Missing MIME body or recipient")
+    raw_mime = request.form.get("body-mime")
+    recipient = request.form.get("recipient")
+    sender = request.form.get("sender")
+    mime_body = None
 
-    send_email_task.delay(sender, recipient, raw_mime)
+    try:
+        if isinstance(raw_mime, str):
+            mime_body = raw_mime.encode('utf-8')
+        else:
+            mime_body = raw_mime
+    except Exception as e:
+        print(f"Encoding error: {e}")
+
+    if not mime_body:
+        logger.error(f"Failed to process MIME body")
+        abort(400, "Invalid MIME body")
+
+    logger.info(f"Received inbound email from {sender} to {recipient}")
+
+    if not recipient:
+        logger.error(f"Missing required fields - recipient: {bool(recipient)}")
+        abort(400, "Missing recipient")
+
+    send_email_task.delay(sender, recipient, mime_body)
     logger.info(f"Queued email task for {recipient}")
     return "Queued", 202
