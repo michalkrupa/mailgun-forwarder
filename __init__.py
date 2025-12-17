@@ -4,7 +4,7 @@ import smtplib
 from time import sleep
 import os
 
-from .tasks import send_email_task
+from mailgun.celery_tasks.tasks import send_email_task
 
 class LargeRequest(Request):
     max_form_memory_size = 50 * 1024 * 1024   # 50MB field limit
@@ -36,7 +36,7 @@ def mailgun_inbound():
     send_email_task.delay(sender, recipient, raw_mime)
     return "Queued", 202
 
-# ⚠️ REMOVE app.run() in production
+# REMOVE app.run() in production
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8765, debug=True)
 

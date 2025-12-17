@@ -2,7 +2,7 @@ import logging
 import smtplib
 
 from mailgun.config import SMTP_HOST, SMTP_PORT
-from .celery import celery
+from mailgun.celery_tasks.celery import celery
 
 logger = logging.getLogger(__name__)
 

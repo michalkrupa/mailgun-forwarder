@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, request, abort
-from mailgun.queue.tasks import send_email_task
+from mailgun.celery_tasks.tasks import send_email_task
 from mailgun.config import WEBHOOK_SECRET
 
 logger = logging.getLogger(__name__)

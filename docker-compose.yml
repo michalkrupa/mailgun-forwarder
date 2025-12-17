@@ -20,11 +20,10 @@ services:
       - SMTP_HOST=${SMTP_HOST:-0.0.0.0}
       - SMTP_PORT=${SMTP_PORT:-25}
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - PYTHONPATH=/app
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - .:/app
     command: gunicorn --bind 0.0.0.0:8765 --workers 4 --timeout 600 --access-logfile - mailgun.app:app
 
   worker:
@@ -33,9 +32,8 @@ services:
       - BROKER_URL=redis://redis:6379
       - SMTP_HOST=${SMTP_HOST:-0.0.0.0}
       - SMTP_PORT=${SMTP_PORT:-25}
+      - PYTHONPATH=/app
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - .:/app
-    command: celery -A mailgun.queue.celery worker --loglevel=info
+    command: celery -A mailgun.celery_tasks.celery worker --loglevel=info
