@@ -31,9 +31,10 @@ Create a `.env` file in the project root:
 
 ```env
 BROKER_URL=redis://redis:6379
-SMTP_HOST=192.168.1.65
+SMTP_HOST=localhost
 SMTP_PORT=2525
 WEBHOOK_SECRET=your-secret-webhook-token
+FORWARD_FOR=forward@domain.com
 ```
 
 **Variables:**
@@ -41,6 +42,7 @@ WEBHOOK_SECRET=your-secret-webhook-token
 - `SMTP_HOST` - Your internal mail server hostname/IP
 - `SMTP_PORT` - SMTP port on your mail server (commonly 2525, 587, or 465)
 - `WEBHOOK_SECRET` - Authentication token to protect the webhook (set a strong value)
+- `FORWARD_FOR` - Address relay sending on behalf of (pass SPF envelope sender)
 
 ### 2. Configure Mailgun Webhook
 
